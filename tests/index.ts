@@ -57,7 +57,7 @@ describe("Testing the API", function() {
     });
 
     it("should retrieve 2 value", async function() {
-        await utils.waitFor(500); // Wait to be sure values have been stored in db
+        await utils.waitFor(1000); // Wait to be sure values have been stored in db
         const res = await utils.GETFetch("http://127.0.0.1:8081/data?n=2");
         assert.equal(JSON.parse(res.body)[0].voltage, testValues[9]);
         assert.equal(JSON.parse(res.body)[1].voltage, testValues[8]);

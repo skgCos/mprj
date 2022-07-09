@@ -5,7 +5,9 @@ let dbClient: MongoClient | undefined;
 let dbName: string;
 const insertQueue = new Map<string, Array<Object>>();
 let enqueuerEnabled = false;
-
+/**
+ * Connects to database
+ */
 async function connect(): Promise<void> {
     const dbUser = utils.verifyAndGetRequiredEnvVariable("DB_USER");
     const dbPsw = utils.verifyAndGetRequiredEnvVariable("DB_PSW");
@@ -17,23 +19,36 @@ async function connect(): Promise<void> {
     await dbClient.connect();
 }
 
-async function enqueueInsert<T>(collection: string, obj: T): Promise<void> {
+/**
+ * Enqueue the insertion of a document to the database
+ * @param collection name of the collection
+ * @param document document to insert
+ */
+async function enqueueInsert<T>(collection: string, document: T): Promise<void> {
     if(enqueuerEnabled) {
         // Check if there are already elements in the queue for the same collection
         if(insertQueue.has(collection)) {
             const collectionQueue = insertQueue.get(collection);
-            collectionQueue?.push(obj as any);
+            collectionQueue?.push(document as any);
         } else {
             // There's nothing in the queue for the current collection, add a new one
             const collectionQueue = new Array<any>();
-            collectionQueue.push(obj);
+            collectionQueue.push(document);
             insertQueue.set(collection, collectionQueue);
         }
     } else {
-        await insertManyInCollection(collection, [obj]);
+        await insertManyInCollection(collection, [document]);
     }
 }
 
+/**
+ * Retrieve an array of elements from the specifed collection
+ * @param collection name of collection
+ * @param numElements number of element to retrive
+ * @param hint mongodb hint
+ * @param filter query filter
+ * @returns a promise to an array with the documents requested
+ */
 async function findNElementsFromCollection<T>(collection: string, numElements: number, hint: any, filter: any): Promise<T> {
     if(dbClient === undefined) {
         throw new Error("DB connection was not open");
@@ -49,6 +64,15 @@ async function findNElementsFromCollection<T>(collection: string, numElements: n
     ) as T;
 }
 
+/**
+ * Calculate the average of the elements from the specified collection
+ * @param collection name of the collection
+ * @param numElements number of elements to consider in the average
+ * @param sort mongodb sort query
+ * @param filter mongodb filter
+ * @param averageField field of which the average should be calculated
+ * @returns An object of type T containing the average requested
+ */
 async function findAverageOfNElementsFromCollection<T>(collection: string, numElements: number, sort: any, filter: any, averageField: string): Promise<T> {
     if(dbClient === undefined) {
         throw new Error("DB connection was not open");
@@ -75,6 +99,10 @@ async function findAverageOfNElementsFromCollection<T>(collection: string, numEl
     ) as T;
 }
 
+/**
+ * Starts the insert bundler task.
+ * This is responsible to bundle and send the data to the database every second to reduce the number of db requests.
+ */
 function startInsertBundlerTask(): void {
     enqueuerEnabled = true;
     setInterval(async () => {
@@ -90,6 +118,9 @@ function startInsertBundlerTask(): void {
     }, 1000);
 }
 
+/**
+ * @private
+ */
 async function insertManyInCollection(collection: string, documents: Array<any>): Promise<void> {
     if(dbClient === undefined) {
         throw new Error("DB connection was not open");
@@ -98,6 +129,9 @@ async function insertManyInCollection(collection: string, documents: Array<any>)
     await db.collection(collection).insertMany(documents);
 }
 
+/**
+ * @private
+ */
 async function deleteAllFromCollection(collection: string): Promise<void> {
     if(dbClient === undefined) {
         throw new Error("DB connection was not open");
