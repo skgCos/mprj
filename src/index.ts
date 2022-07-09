@@ -1,5 +1,6 @@
 import express from "express";
 import routes from "./routes";
+
 const app = express();
 
 // Middleware for json body parsing
