@@ -93,7 +93,7 @@ process.on("uncaughtException", function(err) {
  * Server start
  */
 app.listen(PORT, async () => {
-    console.log("Server listening on", PORT);
+    console.info("Server listening on", PORT);
 
     // Connect to DB
     await dbManager.connect();
