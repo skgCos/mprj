@@ -1,17 +1,38 @@
 import express from "express";
+import commandLineArgs from "command-line-args";
 import routes from "./routes";
 
+/**
+ * App init
+ */
+
+// Get required command line args
+const optionDefinitions = [
+    {name: "port", alias: "v", type: Number}
+];
+const options = commandLineArgs(optionDefinitions);
+
+if(options.port === undefined) {
+    console.error("Please specify on which port the server should listen. i.e. --port 8080");
+    process.exit(-1);
+}
+
+const PORT = options.port;
+
+// Create express app
 const app = express();
 
-// Middleware for json body parsing
+/**
+ * Middlewares
+ */
 app.use(express.json());
 app.use(express.urlencoded({
     extended: true
 }));
 
-app.listen(8081, () => {
-    console.log("App started");
-});
+/**
+ * Routes
+ */
 
 // Data
 app.post("/data", routes.dataPOSTHandler); // save data
@@ -28,10 +49,19 @@ app.all("*", (req: express.Request, res: express.Response) => {
     res.end();
 });
 
-// Middleware for error handling
+/**
+ * Error Middleware
+ */
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
     // Add issue to error tracker like sentry
     console.error(err.name);
     res.status(500);
     res.end();
+});
+
+/**
+ * Server start
+ */
+app.listen(PORT, () => {
+    console.log("Server listening on", PORT);
 });
