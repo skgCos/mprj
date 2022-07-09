@@ -25,7 +25,7 @@ const dataPOSTHandler = [
         }
 
         // Enqueue to db
-        await dbManager.enqueueInsert<VoltageSeriesDocument>("voltageSeries", {
+        void dbManager.enqueueInsert<VoltageSeriesDocument>("voltageSeries", {
             voltage: parseFloat(req.body.voltage),
             timestamp: parseFloat(req.body.timestamp)
         });
@@ -73,6 +73,15 @@ const averageGETHandler = [
             {_id: 0},
             "$voltage"
         );
+
+        // When average was requested but there's no data in the database
+        if(voltageAverageData === null) {
+            res.status(200).json({
+                n,
+                average: null
+            });
+            return;
+        }
 
         // Append N as per spec
         voltageAverageData.n = n;

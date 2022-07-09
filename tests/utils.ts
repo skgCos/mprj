@@ -23,8 +23,25 @@ async function waitFor(ms: number): Promise<void> {
     });
 }
 
-function getUNIXTimestamp(): number {
-    return Math.floor(new Date().getTime() / 1000);
+function getUNIXTimestampMs(): number {
+    return Math.floor(new Date().getTime());
+}
+
+function generateRandomArray(n: number): Array<number> {
+    const outArr = new Array<number>();
+    for(let i = 0; i < n; i++) {
+        outArr.push(parseFloat((Math.random() * 100).toFixed(2)));
+    }
+    return outArr;
+}
+
+// End is not inclusive
+function calculateArrayAverage(array: Array<number>, startIndex: number, endIndex: number): number {
+    let sum = 0;
+    for(let i = startIndex; i < endIndex; i++) {
+        sum += array[i];
+    }
+    return sum / (endIndex - startIndex);
 }
 
 interface FetchResult {
@@ -61,7 +78,9 @@ export default {
     startProcess,
     stopProcess,
     waitFor,
-    getUNIXTimestamp,
+    getUNIXTimestampMs,
     POSTFetch,
-    GETFetch
+    GETFetch,
+    generateRandomArray,
+    calculateArrayAverage
 };
