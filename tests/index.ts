@@ -1,7 +1,6 @@
 import assert from "assert";
 import dbManager from "../src/dbManager";
 import utils from "./utils";
-import fetch from "node-fetch";
 
 describe("Setting up environment", () => {
     it("should delete all from database", async function() {
@@ -14,24 +13,17 @@ describe("Setting up environment", () => {
     });
     it("should wait for server startup", async function() {
         this.timeout(10000);
-        await utils.waitFor(5000);
+        await utils.waitFor(1000);
     });
 });
 
 describe("Testing the API", () => {
     it("should insert test value", async function() {
-        const resp = await fetch("http://127.0.0.1:8081/data", {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                voltage: 2.2,
-                timestamp: utils.getUNIXTimestamp()
-            })
+        const res = await utils.POSTFetch("http://127.0.0.1:8081/data", {
+            voltage: 1.1,
+            timestamp: utils.getUNIXTimestamp()
         });
-        assert.equal(resp.status, 200);
+        assert.equal(res.status, 200);
     });
 });
 

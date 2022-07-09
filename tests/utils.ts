@@ -1,4 +1,5 @@
 import {spawn, ChildProcessWithoutNullStreams} from "child_process";
+import fetch from "node-fetch";
 
 let currentProcess: ChildProcessWithoutNullStreams | undefined;
 
@@ -26,9 +27,41 @@ function getUNIXTimestamp(): number {
     return Math.floor(new Date().getTime() / 1000);
 }
 
+interface FetchResult {
+    body: string;
+    status: number;
+}
+
+async function POSTFetch(url: string, body: any): Promise<FetchResult> {
+    const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+    });
+
+    return {
+        status: resp.status,
+        body: await resp.text()
+    };
+}
+
+async function GETFetch(url: string): Promise<FetchResult> {
+    const resp = await fetch(url);
+
+    return {
+        status: resp.status,
+        body: await resp.text()
+    };
+}
+
 export default {
     startProcess,
     stopProcess,
     waitFor,
-    getUNIXTimestamp
+    getUNIXTimestamp,
+    POSTFetch,
+    GETFetch
 };
