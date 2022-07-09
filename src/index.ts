@@ -1,7 +1,7 @@
 import express from "express";
 import commandLineArgs from "command-line-args";
 import routes from "./routes";
-
+import dbManager from "./dbManager";
 /**
  * App init
  */
@@ -53,15 +53,30 @@ app.all("*", (req: express.Request, res: express.Response) => {
  * Error Middleware
  */
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    // Add issue to error tracker like sentry
+    // Add issue to error tracker like Sentry
     console.error(err.name);
     res.status(500);
     res.end();
 });
 
 /**
+ * Exception tracker
+ */
+process.on("uncaughtException", function(err) {
+    // Add issue to error tracker like Sentry
+    console.error("Uncaught Exception:", err);
+    process.exit(-99);
+});
+
+/**
  * Server start
  */
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log("Server listening on", PORT);
+
+    // Connect to DB
+    await dbManager.connect();
+
+    // Start enqueuer
+    dbManager.startInsertBundlerTask();
 });

@@ -1,5 +1,11 @@
 import express from "express";
 import {body, query, validationResult} from "express-validator";
+import dbManager from "./dbManager";
+
+interface VoltageSeriesDocument {
+    voltage: number;
+    timestamp: number;
+}
 
 const dataPOSTHandler = [
     // Validate
@@ -13,7 +19,13 @@ const dataPOSTHandler = [
             return;
         }
 
-        res.send("Handler data POST");
+        // Enqueue to db
+        dbManager.enqueueInsert<VoltageSeriesDocument>("voltageSeries", {
+            voltage: req.body.voltage,
+            timestamp: req.body.timestamp
+        });
+
+        res.status(200).end();
     }
 ];
 
@@ -21,14 +33,20 @@ const dataGETHandler = [
     // Validate
     query("n").isInt(),
     // Process
-    (req: express.Request, res: express.Response): void => {
+    async (req: express.Request, res: express.Response): Promise<void> => {
         const validationErrors = validationResult(req);
         if(!validationErrors.isEmpty()) {
             res.status(400).json({errors: validationErrors.array()});
             return;
         }
-
-        res.send("Handler data GET");
+        const n = parseInt(req.query.n as string);
+        const voltageData = await dbManager.findNElementsFromCollection<Array<VoltageSeriesDocument>>(
+            "voltageSeries",
+            n,
+            {timestamp: -1},
+            {_id: 0}
+        );
+        res.status(200).json(voltageData);
     }
 ];
 
