@@ -1,0 +1,58 @@
+{
+	"root": true,
+	"extends": [
+		"standard-with-typescript"
+	],
+    "parserOptions": {
+        "project": ["./src/tsconfig.json"]
+    },
+	"rules": {
+		"@typescript-eslint/no-var-requires": 0,
+  		"@typescript-eslint/indent": ["error", 4],
+		"@typescript-eslint/quotes": ["error", "double"],
+  		"@typescript-eslint/semi": ["error", "always"],
+		"@typescript-eslint/keyword-spacing": ["error", { "overrides": {
+			"if": { "after": false },
+			"for": { "after": false },
+			"while": { "after": false },
+			"catch": {"after": false },
+			"switch": {"after": false }
+		}}],
+		"@typescript-eslint/member-delimiter-style": ["error", {
+			"multiline": {
+				"delimiter": "semi",
+				"requireLast": true
+			},
+			"singleline": {
+				"delimiter": "semi",
+				"requireLast": true
+			},
+			"multilineDetection": "brackets"
+		}],
+		"@typescript-eslint/return-await": 0,
+		"eol-last": 0,
+		"@typescript-eslint/array-type": ["error", {"default": "generic"}],
+		"@typescript-eslint/space-before-function-paren": ["error", {
+			"anonymous": "never",
+			"named": "never",
+			"asyncArrow": "always"
+		}],
+		"@typescript-eslint/no-misused-promises": [
+			"error",
+			{
+			  "checksVoidReturn": false
+			}
+		],
+		"no-async-promise-executor": 0,
+		"object-curly-spacing": ["error", "never"],
+		"no-new": 0,
+		"@typescript-eslint/no-this-alias": [
+			"error",
+			{
+			  "allowDestructuring": false,
+			  "allowedNames": ["self"]
+			}
+		]
+
+	}
+}

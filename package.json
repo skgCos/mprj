@@ -1,0 +1,27 @@
+{
+  "name": "mprj",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --outfile=dist/app.js --platform=node",
+    "start": "node dist/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skgCos/mprj.git"
+  },
+  "author": "skgCos",
+  "bugs": {
+    "url": "https://github.com/skgCos/mprj/issues"
+  },
+  "homepage": "https://github.com/skgCos/mprj#readme",
+  "devDependencies": {
+    "@types/node": "^18.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.30.5",
+    "@typescript-eslint/parser": "^5.30.5",
+    "esbuild": "^0.14.48",
+    "eslint-config-standard-with-typescript": "^22.0.0",
+    "typescript": "^4.7.4"
+  }
+}
