@@ -7,6 +7,11 @@ interface VoltageSeriesDocument {
     timestamp: number;
 }
 
+interface VoltageAverageDocument {
+    average: number;
+    n: number;
+}
+
 const dataPOSTHandler = [
     // Validate
     body("voltage").isFloat(),
@@ -21,8 +26,8 @@ const dataPOSTHandler = [
 
         // Enqueue to db
         dbManager.enqueueInsert<VoltageSeriesDocument>("voltageSeries", {
-            voltage: req.body.voltage,
-            timestamp: req.body.timestamp
+            voltage: parseFloat(req.body.voltage),
+            timestamp: parseFloat(req.body.timestamp)
         });
 
         res.status(200).end();
@@ -54,14 +59,24 @@ const averageGETHandler = [
     // Validate
     query("n").isInt(),
     // Process
-    (req: express.Request, res: express.Response): void => {
+    async (req: express.Request, res: express.Response): Promise<void> => {
         const validationErrors = validationResult(req);
         if(!validationErrors.isEmpty()) {
             res.status(400).json({errors: validationErrors.array()});
             return;
         }
+        const n = parseInt(req.query.n as string);
+        const voltageAverageData = await dbManager.findAverageOfNElementsFromCollection<VoltageAverageDocument>(
+            "voltageSeries",
+            n,
+            {timestamp: -1},
+            {_id: 0},
+            "$voltage"
+        );
 
-        res.send("Handler average GET");
+        // Append N as per spec
+        voltageAverageData.n = n;
+        res.status(200).json(voltageAverageData);
     }
 ];
 

@@ -29,7 +29,7 @@ function enqueueInsert<T>(collection: string, obj: T): void {
     }
 }
 
-async function findNElementsFromCollection<T>(collection: string, numElement: number, hint: any, filter: any): Promise<T> {
+async function findNElementsFromCollection<T>(collection: string, numElements: number, hint: any, filter: any): Promise<T> {
     if(dbClient === undefined) {
         throw new Error("DB connection was not open");
     }
@@ -38,10 +38,35 @@ async function findNElementsFromCollection<T>(collection: string, numElement: nu
     return await (db.collection(collection)
         .find()
         .hint(hint)
-        .limit(numElement)
+        .limit(numElements)
         .project(filter)
         .toArray()
     ) as T;
+}
+
+async function findAverageOfNElementsFromCollection<T>(collection: string, numElements: number, sort: any, filter: any, averageField: string): Promise<T> {
+    if(dbClient === undefined) {
+        throw new Error("DB connection was not open");
+    }
+
+    const db = dbClient.db(dbName);
+    return await db.collection(collection)
+        .aggregate([
+            {
+                $sort: sort
+            },
+            {
+                $limit: numElements
+            },
+            {
+                $group: {
+                    _id: null,
+                    average: {$avg: averageField}
+                }
+            }
+        ])
+        .project(filter)
+        .next() as T;
 }
 
 function startInsertBundlerTask(): void {
@@ -66,5 +91,6 @@ export default {
     connect,
     enqueueInsert,
     findNElementsFromCollection,
-    startInsertBundlerTask
+    startInsertBundlerTask,
+    findAverageOfNElementsFromCollection
 };
