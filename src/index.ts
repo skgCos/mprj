@@ -28,7 +28,7 @@ if(options.requestsPerHour === undefined) {
 }
 
 const PORT = options.port;
-const REQUEST_PER_HOUR = options.requestPerHour;
+const REQUEST_PER_HOUR = options.requestsPerHour;
 
 // Create express app
 const app = express();
