@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"rootDir": "../",
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"sourceMap": true,
+		"baseUrl": ".",
+		"paths": {
+			"*": ["node_modules/*"]
+		},
+		"types": ["mocha", "node"],
+		"strictNullChecks": true,
+	},
+	"include": [
+		"../tests/**/*",
+		"../src/**/*",
+	]
+}

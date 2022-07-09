@@ -11,7 +11,8 @@ import rateLimit from "express-rate-limit";
 // Get required command line args
 const optionDefinitions = [
     {name: "port", alias: "p", type: Number},
-    {name: "requestsPerHour", alias: "r", type: Number}
+    {name: "requestsPerHour", alias: "r", type: Number},
+    {name: "enqueuerEnabled", alias: "e", type: Boolean}
 ];
 const options = commandLineArgs(optionDefinitions);
 
@@ -98,5 +99,7 @@ app.listen(PORT, async () => {
     await dbManager.connect();
 
     // Start enqueuer
-    dbManager.startInsertBundlerTask();
+    if(options.enqueuerEnabled as boolean) {
+        dbManager.startInsertBundlerTask();
+    }
 });

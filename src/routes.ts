@@ -17,7 +17,7 @@ const dataPOSTHandler = [
     body("voltage").isFloat(),
     body("timestamp").isInt(),
     // Process
-    (req: express.Request, res: express.Response): void => {
+    async (req: express.Request, res: express.Response): Promise<void> => {
         const validationErrors = validationResult(req);
         if(!validationErrors.isEmpty()) {
             res.status(400).json({errors: validationErrors.array()});
@@ -25,7 +25,7 @@ const dataPOSTHandler = [
         }
 
         // Enqueue to db
-        dbManager.enqueueInsert<VoltageSeriesDocument>("voltageSeries", {
+        await dbManager.enqueueInsert<VoltageSeriesDocument>("voltageSeries", {
             voltage: parseFloat(req.body.voltage),
             timestamp: parseFloat(req.body.timestamp)
         });

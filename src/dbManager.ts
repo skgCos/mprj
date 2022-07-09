@@ -1,7 +1,10 @@
 import {MongoClient, ServerApiVersion} from "mongodb";
 import utils from "./utils";
+
 let dbClient: MongoClient | undefined;
 let dbName: string;
+const insertQueue = new Map<string, Array<Object>>();
+let enqueuerEnabled = false;
 
 async function connect(): Promise<void> {
     const dbUser = utils.verifyAndGetRequiredEnvVariable("DB_USER");
@@ -14,18 +17,20 @@ async function connect(): Promise<void> {
     await dbClient.connect();
 }
 
-const insertQueue = new Map<string, Array<Object>>();
-
-function enqueueInsert<T>(collection: string, obj: T): void {
-    // Check if there are already elements in the queue for the same collection
-    if(insertQueue.has(collection)) {
-        const collectionQueue = insertQueue.get(collection);
-        collectionQueue?.push(obj as any);
+async function enqueueInsert<T>(collection: string, obj: T): Promise<void> {
+    if(enqueuerEnabled) {
+        // Check if there are already elements in the queue for the same collection
+        if(insertQueue.has(collection)) {
+            const collectionQueue = insertQueue.get(collection);
+            collectionQueue?.push(obj as any);
+        } else {
+            // There's nothing in the queue for the current collection, add a new one
+            const collectionQueue = new Array<any>();
+            collectionQueue.push(obj);
+            insertQueue.set(collection, collectionQueue);
+        }
     } else {
-        // There's nothing in the queue for the current collection, add a new one
-        const collectionQueue = new Array<any>();
-        collectionQueue.push(obj);
-        insertQueue.set(collection, collectionQueue);
+        await insertManyInCollection(collection, [obj]);
     }
 }
 
@@ -50,7 +55,7 @@ async function findAverageOfNElementsFromCollection<T>(collection: string, numEl
     }
 
     const db = dbClient.db(dbName);
-    return await db.collection(collection)
+    return await (db.collection(collection)
         .aggregate([
             {
                 $sort: sort
@@ -66,20 +71,18 @@ async function findAverageOfNElementsFromCollection<T>(collection: string, numEl
             }
         ])
         .project(filter)
-        .next() as T;
+        .next()
+    ) as T;
 }
 
 function startInsertBundlerTask(): void {
+    enqueuerEnabled = true;
     setInterval(async () => {
         // Iterate map and for each collection with documents pending, perfrom an insertMany
         insertQueue.forEach(async (value, key) => {
             console.log("Sending", value, "for collection", key);
 
-            if(dbClient === undefined) {
-                throw new Error("DB connection was not open");
-            }
-            const db = dbClient.db(dbName);
-            await db.collection(key).insertMany(value);
+            await insertManyInCollection(key, value);
 
             // Remove items from queue
             insertQueue.delete(key);
@@ -87,10 +90,28 @@ function startInsertBundlerTask(): void {
     }, 1000);
 }
 
+async function insertManyInCollection(collection: string, documents: Array<any>): Promise<void> {
+    if(dbClient === undefined) {
+        throw new Error("DB connection was not open");
+    }
+    const db = dbClient.db(dbName);
+    await db.collection(collection).insertMany(documents);
+}
+
+async function deleteAllFromCollection(collection: string): Promise<void> {
+    if(dbClient === undefined) {
+        throw new Error("DB connection was not open");
+    }
+
+    const db = dbClient.db(dbName);
+    await db.collection(collection).deleteMany({});
+}
+
 export default {
     connect,
     enqueueInsert,
     findNElementsFromCollection,
     startInsertBundlerTask,
-    findAverageOfNElementsFromCollection
+    findAverageOfNElementsFromCollection,
+    deleteAllFromCollection
 };
