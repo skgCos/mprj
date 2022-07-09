@@ -2,22 +2,33 @@ import express from "express";
 import commandLineArgs from "command-line-args";
 import routes from "./routes";
 import dbManager from "./dbManager";
+import rateLimit from "express-rate-limit";
+
 /**
  * App init
  */
 
 // Get required command line args
 const optionDefinitions = [
-    {name: "port", alias: "v", type: Number}
+    {name: "port", alias: "p", type: Number},
+    {name: "requestsPerHour", alias: "r", type: Number}
 ];
 const options = commandLineArgs(optionDefinitions);
 
+// Port argument
 if(options.port === undefined) {
     console.error("Please specify on which port the server should listen. i.e. --port 8080");
     process.exit(-1);
 }
 
+// Request per hour argument
+if(options.requestsPerHour === undefined) {
+    console.error("Please specify the limit of request per hour for each IP. i.e. --requestsPerHour 1000");
+    process.exit(-2);
+}
+
 const PORT = options.port;
+const REQUEST_PER_HOUR = options.requestPerHour;
 
 // Create express app
 const app = express();
@@ -25,10 +36,19 @@ const app = express();
 /**
  * Middlewares
  */
+
+// JSON body parser
 app.use(express.json());
 app.use(express.urlencoded({
     extended: true
 }));
+
+// Rate limiter
+const rateLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1h
+    max: REQUEST_PER_HOUR
+});
+app.use(rateLimiter);
 
 /**
  * Routes
