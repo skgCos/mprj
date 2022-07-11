@@ -1,3 +1,4 @@
+import {logger} from "./logger";
 import {MongoClient, ServerApiVersion} from "mongodb";
 import utils from "./utils";
 
@@ -108,7 +109,7 @@ function startInsertBundlerTask(): void {
     setInterval(async () => {
         // Iterate map and for each collection with documents pending, perfrom an insertMany
         insertQueue.forEach(async (value, key) => {
-            console.info("Sending", value, "for collection", key);
+            logger.debug(`Sending ${JSON.stringify(value)} for collection ${key}`);
 
             await insertManyInCollection(key, value);
 

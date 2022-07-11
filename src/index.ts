@@ -3,7 +3,7 @@ import commandLineArgs from "command-line-args";
 import routes from "./routes";
 import dbManager from "./dbManager";
 import rateLimit from "express-rate-limit";
-
+import {logger, loggerMiddleware} from "./logger";
 /**
  * App init
  */
@@ -18,17 +18,17 @@ const options = commandLineArgs(optionDefinitions);
 
 // Port argument
 if(options.port === undefined) {
-    console.error("Please specify on which port the server should listen. i.e. --port 8080");
+    logger.error("Please specify on which port the server should listen. i.e. --port 8080");
     process.exit(-1);
 }
 
 // Request per hour argument
 if(options.requestsPerHour === undefined) {
-    console.error("Please specify the limit of request per hour for each IP. i.e. --requestsPerHour 1000");
+    logger.error("Please specify the limit of request per hour for each IP. i.e. --requestsPerHour 1000");
     process.exit(-2);
 }
 
-const PORT = options.port;
+const PORT: number = options.port;
 const REQUEST_PER_HOUR = options.requestsPerHour;
 
 // Create express app
@@ -50,6 +50,9 @@ const rateLimiter = rateLimit({
     max: REQUEST_PER_HOUR
 });
 app.use(rateLimiter);
+
+// Logger
+app.use(loggerMiddleware);
 
 /**
  * Routes
@@ -75,7 +78,7 @@ app.all("*", (req: express.Request, res: express.Response) => {
  */
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
     // Add issue to error tracker like Sentry
-    console.error(err.name);
+    logger.error("Server Error", err);
     res.status(500);
     res.end();
 });
@@ -85,7 +88,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
  */
 process.on("uncaughtException", function(err) {
     // Add issue to error tracker like Sentry
-    console.error("Uncaught Exception:", err);
+    logger.error("Uncaught Exception:", err);
     process.exit(-99);
 });
 
@@ -93,7 +96,7 @@ process.on("uncaughtException", function(err) {
  * Server start
  */
 app.listen(PORT, async () => {
-    console.info("Server listening on", PORT);
+    logger.info(`Server listening on port ${PORT}`);
 
     // Connect to DB
     await dbManager.connect();
