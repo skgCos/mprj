@@ -12,6 +12,11 @@ interface VoltageAverageDocument {
     n: number;
 }
 
+interface ResponseTemplate {
+    data: any;
+    errors: any;
+}
+
 const dataPOSTHandler = [
     // Validate
     body("voltage").isFloat(),
@@ -30,7 +35,13 @@ const dataPOSTHandler = [
             timestamp: parseFloat(req.body.timestamp)
         });
 
-        res.status(200).end();
+        const responseObj: ResponseTemplate = {
+            data: null,
+            errors: new Array<any>()
+        };
+
+        // Success
+        res.status(200).json(responseObj);
     }
 ];
 
@@ -51,7 +62,13 @@ const dataGETHandler = [
             {timestamp: -1},
             {_id: 0}
         );
-        res.status(200).json(voltageData);
+
+        const responseObj: ResponseTemplate = {
+            data: voltageData,
+            errors: new Array<any>()
+        };
+
+        res.status(200).json(responseObj);
     }
 ];
 
@@ -74,18 +91,26 @@ const averageGETHandler = [
             "$voltage"
         );
 
+        const responseObj: ResponseTemplate = {
+            data: voltageAverageData,
+            errors: new Array<any>()
+        };
+
         // When average was requested but there's no data in the database
         if(voltageAverageData === null) {
-            res.status(200).json({
+            // Overwrite data with valid null response
+            responseObj.data = {
                 n,
                 average: null
-            });
+            };
+            res.status(200).json(responseObj);
             return;
         }
 
         // Append N as per spec
         voltageAverageData.n = n;
-        res.status(200).json(voltageAverageData);
+
+        res.status(200).json(responseObj);
     }
 ];
 
