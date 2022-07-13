@@ -24,12 +24,12 @@ describe("Testing the API", function() {
     this.timeout(5000);
     it("should retrieve 1 value when there are none", async function() {
         const res = await utils.GETFetch("http://127.0.0.1:8081/data?n=1");
-        assert.equal(JSON.parse(res.body).length, 0);
+        assert.equal(JSON.parse(res.body).data.length, 0);
     });
 
     it("should retrieve the average when there are no values", async function() {
         const res = await utils.GETFetch("http://127.0.0.1:8081/average?n=1");
-        assert.equal(JSON.parse(res.body).average, null);
+        assert.equal(JSON.parse(res.body).data.average, null);
     });
 
     it("should insert test value", async function() {
@@ -43,7 +43,7 @@ describe("Testing the API", function() {
     it("should retrieve 1 value", async function() {
         await utils.waitFor(100); // Wait to be sure values have been stored in db
         const res = await utils.GETFetch("http://127.0.0.1:8081/data?n=1");
-        assert.equal(JSON.parse(res.body)[0].voltage, testValues[0]);
+        assert.equal(JSON.parse(res.body).data[0].voltage, testValues[0]);
     });
 
     it("should insert other test values", async function() {
@@ -59,18 +59,18 @@ describe("Testing the API", function() {
     it("should retrieve 2 value", async function() {
         await utils.waitFor(1000); // Wait to be sure values have been stored in db
         const res = await utils.GETFetch("http://127.0.0.1:8081/data?n=2");
-        assert.equal(JSON.parse(res.body)[0].voltage, testValues[9]);
-        assert.equal(JSON.parse(res.body)[1].voltage, testValues[8]);
+        assert.equal(JSON.parse(res.body).data[0].voltage, testValues[9]);
+        assert.equal(JSON.parse(res.body).data[1].voltage, testValues[8]);
     });
 
     it("should retrieve average of last 2 values", async function() {
         const res = await utils.GETFetch("http://127.0.0.1:8081/average?n=2");
-        assert.equal(JSON.parse(res.body).average.toFixed(2), utils.calculateArrayAverage(testValues, 8, 10).toFixed(2));
+        assert.equal(JSON.parse(res.body).data.average.toFixed(2), utils.calculateArrayAverage(testValues, 8, 10).toFixed(2));
     });
 
     it("should retrieve average of last 6 values", async function() {
         const res = await utils.GETFetch("http://127.0.0.1:8081/average?n=6");
-        assert.equal(JSON.parse(res.body).average.toFixed(2), utils.calculateArrayAverage(testValues, 4, 10).toFixed(2));
+        assert.equal(JSON.parse(res.body).data.average.toFixed(2), utils.calculateArrayAverage(testValues, 4, 10).toFixed(2));
     });
 
     it("should fail to retrieve the average since n is missing", async function() {
